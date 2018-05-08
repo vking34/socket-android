@@ -47,10 +47,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 10/2/2017.
- */
-
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
     @Override
@@ -62,8 +58,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private String address;
     private String ward;
 
+    // static vars
     private static final String TAG = "MapActivity";
-
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -83,7 +79,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
-    private PlaceInfo mPlace;
     private Marker marker;
 
     @Override
@@ -110,7 +105,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "onMapReady: map is ready");
 
         mMap = googleMap;
-        init();
 
         if (mLocationPermissionsGranted) {
             getDeviceLocation();
@@ -126,12 +120,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         }
         else {
-//            mMap.addMarker(new MarkerOptions().position(HaNoi).title("Marker in HaNoi"));
-
             moveCamera(HaNoi, DEFAULT_ZOOM, "Ha Noi");
-
         }
 
+        initMapOptions();
+    }
+
+    private void initMapOptions(){
+        Log.d(TAG, "init: initializing");
+
+        // handle with touching on Map: create a new marker
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -145,44 +143,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 mSearchText.setText(address + ", " + ward + " ward");
             }
         });
-    }
 
-    private void moveCamera(LatLng latLng, float zoom, String title){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-        mMap.clear();
-
-        if(!title.equals("Your Location"))
-        {
-            MarkerOptions options = new MarkerOptions().position(latLng).title(title);
-            marker = mMap.addMarker(options);
-        }
-
-        hideSoftKeyboard();
-    }
-
-    private void moveCameraToCurrentPos(LatLng latLng, float zoom){
-        Log.d(TAG, "moveCamera: moving the camera to current position: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-        mMap.clear();
-        hideSoftKeyboard();
-    }
-
-    private void animateCamera(LatLng latLng, float zoom, String title){
-        Log.d(TAG, "animateCamera: animating the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-        mMap.clear();   // clear Markers
-
-        MarkerOptions options = new MarkerOptions().position(latLng).title(title);
-        marker = mMap.addMarker(options);
-        marker.showInfoWindow();
-        hideSoftKeyboard();
-    }
-
-    private void init(){
-        Log.d(TAG, "init: initializing");
-
+        // Place Google API
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
@@ -206,15 +168,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         || keyEvent.getAction() == KeyEvent.ACTION_DOWN
                         || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
 
-                    //execute our method for searching
-
                     geoLocate(searchString);
-
                 }
                 return false;
             }
         });
 
+        // GPS button: get the current position
         mGps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -222,10 +182,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 getDeviceLocation();
             }
         });
+    }
+
+    private void moveCamera(LatLng latLng, float zoom, String title){
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        mMap.clear();
+
+        MarkerOptions options = new MarkerOptions().position(latLng).title(title);
+        marker = mMap.addMarker(options);
 
         hideSoftKeyboard();
     }
 
+    private void moveCameraToCurrentPos(LatLng latLng, float zoom){
+        Log.d(TAG, "moveCamera: moving the camera to current position: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        mMap.clear();
+        hideSoftKeyboard();
+    }
+
+    private void animateCamera(LatLng latLng, float zoom, String title){
+        Log.d(TAG, "animateCamera: animating the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        mMap.clear();   // clear Markers
+
+        MarkerOptions options = new MarkerOptions().position(latLng).title(title);
+        marker = mMap.addMarker(options);
+        marker.showInfoWindow();
+        hideSoftKeyboard();
+    }
+
+    // get address using searchString
     private void geoLocate(String searchString){
         Log.d(TAG, "geoLocate: geolocating by String");
         Geocoder geocoder = new Geocoder(MapActivity.this);
@@ -241,9 +230,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.d(TAG, "geoLocate: found a location: " + address.getFeatureName() + ", " + address.getThoroughfare() + ", " + address.getLocality());
 
             animateCamera(new LatLng(address.getLatitude(), address.getLongitude()), DETAIL_ZOOM, address.getFeatureName() + " " + address.getThoroughfare() + ", " + address.getLocality());
+
         }
     }
 
+    // get address using coordinates
     private void geoLocate(LatLng latLng){
         Log.d(TAG, "geoLocate: geoLocating by LatLng");
         Geocoder geocoder = new Geocoder(MapActivity.this);
@@ -282,10 +273,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             Location currentLocation = (Location) task.getResult();
                             pos = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                             moveCameraToCurrentPos(pos, DETAIL_ZOOM);
+
                             geoLocate(pos);
 
                             mSearchText.setText(address + ", " + ward);
-
                         }else{
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
@@ -314,7 +305,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             if(ContextCompat.checkSelfPermission(this.getApplicationContext(),
                     COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 mLocationPermissionsGranted = true;
-//                initMap();
             }else{
                 ActivityCompat.requestPermissions(this,
                         permissions,
@@ -344,8 +334,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     }
                     Log.d(TAG, "onRequestPermissionsResult: permission granted");
                     mLocationPermissionsGranted = true;
-                    //initialize our map
-//                    initMap();
+
                 }
             }
         }
