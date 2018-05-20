@@ -24,6 +24,15 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Button btn_socket = (Button) findViewById(R.id.btn_socket);
+        btn_socket.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SocketActivity.class);
+                startActivity(intent);
+            }
+        });
+
         if(isServicesOK()){
             Log.d(TAG, "Jump to the map");
             init();
@@ -51,6 +60,7 @@ public class MainActivity extends AppCompatActivity  {
             Log.d(TAG, "isServicesOK: Google Play Services is working");
             return true;
         }
+
         else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
             //an error occured but we can resolve it
             Log.d(TAG, "isServicesOK: an error occured but we can fix it");

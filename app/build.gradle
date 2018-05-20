@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion "27.0.3"
     defaultConfig {
         applicationId "com.example.vking34.gas"
-        minSdkVersion 27
-        targetSdkVersion 26
+        minSdkVersion 21
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -21,7 +21,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
 //    implementation 'com.google.android.gms:play-services-plus:15.0.0'
 
     implementation 'com.google.android.gms:play-services-maps:15.0.0'
